@@ -124,3 +124,9 @@ Countries map[string]string // MYAPP_COUNTRIES="ar:Argentina,es:Spain,it:Italy"
 Prefixes  map[string]int    // MYAPP_PREFIXES="ar:54,es:34,it:39"
 ```
 
+## License
+
+Copyright (c) 2020-present [Christian Kuroki](https://github.com/ckuroki)
+
+Licensed under [MIT License](./LICENSE)
+
