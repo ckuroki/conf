@@ -37,7 +37,7 @@ var (
 // cfg.srvShortName will take MIAPP_SRV_SHORT_NAME value o "local"
 //
 // Check conf_test.go to see more examples
-func Unmarshal(cfg interface{}, prefix string) error {
+func Unmarshal(cfg interface{}, prefix, pairDelimiter, keyDelimiter string) error {
 	v := reflect.ValueOf(cfg)
 	if v.Kind() != reflect.Ptr || v.IsNil() {
 		return ErrInvalidValue
@@ -57,7 +57,7 @@ func Unmarshal(cfg interface{}, prefix string) error {
 				continue
 			}
 			iface := vf.Addr().Interface()
-			err := Unmarshal(iface, toEnvVarName(tf.Name, prefix))
+			err := Unmarshal(iface, toEnvVarName(tf.Name, prefix), pairDelimiter, keyDelimiter)
 			if err != nil {
 				return err
 			}
@@ -75,7 +75,7 @@ func Unmarshal(cfg interface{}, prefix string) error {
 		if val == "" {
 			val = tagVal
 		}
-		err := set(tf.Type, vf, val)
+		err := set(tf.Type, vf, val, pairDelimiter, keyDelimiter)
 		if err != nil {
 			return err
 		}
@@ -84,11 +84,11 @@ func Unmarshal(cfg interface{}, prefix string) error {
 }
 
 // set updates a field with value defined in val
-func set(t reflect.Type, f reflect.Value, val string) error {
+func set(t reflect.Type, f reflect.Value, val, pairDelimiter, keyDelimiter string) error {
 	switch t.Kind() {
 	case reflect.Ptr:
 		ptr := reflect.New(t.Elem())
-		err := set(t.Elem(), ptr.Elem(), val)
+		err := set(t.Elem(), ptr.Elem(), val, pairDelimiter, keyDelimiter)
 		if err != nil {
 			return err
 		}
@@ -110,19 +110,19 @@ func set(t reflect.Type, f reflect.Value, val string) error {
 	case reflect.Map:
 		m := reflect.MakeMap(t)
 		if len(strings.TrimSpace(val)) != 0 {
-			pairs := strings.Split(val, ",")
+			pairs := strings.Split(val, pairDelimiter)
 			for _, pair := range pairs {
-				kvpair := strings.Split(pair, ":")
+				kvpair := strings.Split(pair, keyDelimiter)
 				if len(kvpair) != 2 {
 					return fmt.Errorf("invalid map item: %q", pair)
 				}
 				k := reflect.New(t.Key()).Elem()
-				err := set(t.Key(), k, kvpair[0])
+				err := set(t.Key(), k, kvpair[0], pairDelimiter, keyDelimiter)
 				if err != nil {
 					return err
 				}
 				v := reflect.New(t.Elem()).Elem()
-				err = set(t.Elem(), v, kvpair[1])
+				err = set(t.Elem(), v, kvpair[1], pairDelimiter, keyDelimiter)
 				if err != nil {
 					return err
 				}
@@ -144,7 +144,7 @@ func set(t reflect.Type, f reflect.Value, val string) error {
 			vals := strings.Split(val, ",")
 			s = reflect.MakeSlice(t, len(vals), len(vals))
 			for i, v := range vals {
-				err := set(t.Elem(), s.Index(i), v)
+				err := set(t.Elem(), s.Index(i), v, pairDelimiter, keyDelimiter)
 				if err != nil {
 					return err
 				}

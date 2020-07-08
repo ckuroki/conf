@@ -38,7 +38,7 @@ func TestConfig(t *testing.T) {
 	os.Setenv("MYAPP_COUNT_SLICE", "one,two,three")
 	os.Setenv("MYAPP_AMOUNT", "8.88")
 
-	err := Unmarshal(&cfg, "MYAPP")
+	err := Unmarshal(&cfg, "MYAPP", ",", ":")
 	require.NoError(t, err)
 
 	assert.Equal(t, 9090, cfg.ApiPort)
