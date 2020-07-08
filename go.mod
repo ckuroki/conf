@@ -1,4 +1,4 @@
-module bitbucket.org/ckuroki/configura
+module github.com/ckuroki/conf
 
 go 1.13
 
